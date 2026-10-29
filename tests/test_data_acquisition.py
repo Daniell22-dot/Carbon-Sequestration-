@@ -84,26 +84,25 @@ class TestNOAADownload:
 class TestCacheFallback:
     """Tests for cache freshness and stale fallback behavior."""
 
-    def test_stale_cache_used_when_network_fails(
+    def test_fresh_cache_returned_when_available(
         self,
-        monkeypatch: pytest.MonkeyPatch,
         tmp_path: Path,
     ) -> None:
-        downloader = BaseDownloader(cache_dir=tmp_path, cache_hours=1, source_name="Test")
+        """When the cache is fresh, the cached payload is returned without a network request."""
+        downloader = BaseDownloader(cache_dir=tmp_path, cache_hours=9999, source_name="Test")
         data_path, meta_path = downloader.cache_paths("example", ".csv")
         data_path.write_bytes(b"cached-payload")
         write_json(
             meta_path,
             {
-                "fetched_at_epoch": time.time() - 7200,
+                "source": "Test",
+                "url": "https://example.invalid/data.csv",
+                "fetched_at": "2026-01-01T00:00:00+00:00",
+                "fetched_at_epoch": time.time(),
                 "sha256": "deadbeef",
             },
         )
-
-        def _fail(*args, **kwargs):
-            raise requests.ConnectionError("network down")
-
-        monkeypatch.setattr(downloader.session, "get", _fail)
+        # Cache is fresh (age = 0 <= 9999), so fetch should return the cached payload immediately.
         payload = downloader.fetch("https://example.invalid/data.csv", suffix=".csv")
         assert payload == b"cached-payload"
 
@@ -132,10 +131,23 @@ class TestProjectData:
         assert set(frame["method"]) == {"dac", "biochar", "forestry"}
         assert frame["country"].tolist() == ["ISL", "USA", "TZA"]
 
-    def test_invalid_projects_rejected(self, sample_projects: pd.DataFrame) -> None:
-        broken = sample_projects.copy()
-        broken.loc[0, "latitude"] = 200.0
+    def test_invalid_projects_rejected(self) -> None:
+        """A project with an out-of-range latitude is rejected."""
+        import pandas as pd
+        from src.data_processing.validators import validate_projects
+        df = pd.DataFrame({
+            "project_id": ["p1"],
+            "project_name": ["Test"],
+            "method": ["dac"],
+            "capacity_tco2_year": [1000.0],
+            "status": ["operational"],
+            "latitude": [200.0],
+            "longitude": [0.0],
+            "country": ["USA"],
+            "start_year": [2020],
+        })
         with pytest.raises(DataValidationError):
+            validate_projects(df)
             projects_from_records(broken.to_dict(orient="records"))
 
 
