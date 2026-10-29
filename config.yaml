@@ -1,0 +1,42 @@
+data_sources:
+  noaa:
+    station: mlo
+    start_year: 1958
+    end_year: null
+    cache_hours: 24
+  cdr:
+    api_endpoint: ""
+    cache_hours: 168
+  world_bank:
+    cache_hours: 168
+  openalex:
+    mailto: ""
+
+analysis:
+  forecast_horizon: 10
+  confidence_level: 0.95
+  seasonal_period: 12
+  changepoint_threshold: 3.0
+  methods:
+    - dac
+    - beccs
+    - biochar
+    - forestry
+    - erw
+
+reporting:
+  format:
+    - docx
+    - html
+    - xlsx
+  include_interactive: true
+  theme: professional
+  title: "Carbon Sequestration and Atmospheric CO2 Analysis"
+
+paths:
+  cache_dir: data/raw
+  processed_dir: data/processed
+  output_dir: output
+  reports_dir: output/reports
+  figures_dir: output/figures
+  exports_dir: output/data_exports

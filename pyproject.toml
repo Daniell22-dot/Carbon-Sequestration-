@@ -1,0 +1,84 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "carbon-sequestration"
+version = "0.1.0"
+description = "Time series analysis of atmospheric CO2 and carbon sequestration methods"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Carbon Sequestration Project" }]
+keywords = ["carbon", "sequestration", "co2", "climate", "time-series"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    "pandas>=2.2,<3.0",
+    "numpy>=1.26,<3.0",
+    "scipy>=1.11",
+    "statsmodels>=0.14.2",
+    "matplotlib>=3.8",
+    "seaborn>=0.13",
+    "requests>=2.28",
+    "pyyaml>=6.0",
+    "python-docx>=1.0",
+    "reportlab>=4.1",
+    "openpyxl>=3.1",
+    "jinja2>=3.1",
+    "loguru>=0.7",
+    "pydantic>=2.0",
+    "tqdm>=4.65",
+]
+
+[project.optional-dependencies]
+geo = ["geopandas>=0.14", "shapely>=2.0", "pyproj>=3.6", "folium>=0.15"]
+interactive = ["plotly>=5.18", "bokeh>=3.2"]
+literature = ["pyalex>=0.11"]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=4.1",
+    "black>=24.0",
+    "ruff>=0.4",
+]
+
+[project.scripts]
+carbon-download = "scripts.download_data:main"
+carbon-analyze = "scripts.run_analysis:main"
+carbon-report = "scripts.generate_report:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*", "scripts*"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["*/__init__.py"]
